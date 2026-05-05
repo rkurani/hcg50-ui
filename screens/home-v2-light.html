@@ -325,10 +325,166 @@
   }
   .theme-toggle:hover { color: var(--orange); border-color: var(--orange); }
 
+  /* ════════════════════════════════════════════════════
+     BOOT SEQUENCE — power-up animation (light theme)
+     Same timing as dark — colors inverted for light bg
+     ════════════════════════════════════════════════════ */
+
+  .boot-overlay {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: overlay-out 0.4s 2.0s forwards;
+  }
+
+  .boot-logo {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(1);
+    transform-origin: center center;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    animation: logo-migrate 0.6s 1.4s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+  }
+
+  .boot-glyph {
+    width: 100px; height: 100px;
+    flex-shrink: 0;
+    opacity: 0;
+    animation: glyph-in 0.7s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
+  .boot-wordmark {
+    font-size: 56px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1;
+    opacity: 0;
+    animation: wordmark-in 0.5s 0.7s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes glyph-in {
+    0%   { opacity: 0; transform: scale(0.3) rotate(-90deg); filter: blur(6px); }
+    60%  { opacity: 1; transform: scale(1.08) rotate(0); filter: blur(0); }
+    100% { opacity: 1; transform: scale(1) rotate(0); filter: blur(0); }
+  }
+
+  @keyframes wordmark-in {
+    0%   { opacity: 0; transform: translateX(-30px); letter-spacing: 0.5em; }
+    100% { opacity: 1; transform: translateX(0);    letter-spacing: 0.15em; }
+  }
+
+  @keyframes logo-migrate {
+    0%   {
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+      top: 18px; left: 16px;
+      transform: translate(0, -50%) scale(0.22);
+    }
+  }
+
+  @keyframes overlay-out {
+    0%   { opacity: 1; visibility: visible; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+
+  /* Hide screen content during boot */
+  .header, .hero, .secondary {
+    opacity: 0;
+    animation: fade-in 0.4s forwards;
+  }
+  .header     { animation-delay: 1.9s; }
+  .hero       { animation-delay: 2.0s; }
+  .secondary  { animation-delay: 2.0s; }
+
+  .status-bar {
+    opacity: 0;
+    transform: translateY(100%);
+    animation: status-bar-up 0.6s 3.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes fade-in { to { opacity: 1; } }
+
+  @keyframes status-bar-up {
+    0%   { opacity: 0; transform: translateY(100%); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-label,
+  .hero-target,
+  .hero-sparkline-meta,
+  .hero-sparkline-range {
+    opacity: 0;
+    animation: fade-in 0.4s 2.4s forwards;
+  }
+
+  .hero-sparkline polyline {
+    stroke-dasharray: 1500;
+    stroke-dashoffset: 1500;
+    animation: draw-line 1.0s 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+  .hero-sparkline polygon {
+    opacity: 0;
+    animation: fade-in 0.6s 3.4s forwards;
+  }
+  .hero-sparkline circle {
+    opacity: 0;
+    animation: fade-in 0.4s 3.6s forwards;
+  }
+  .hero-sparkline line {
+    opacity: 0;
+    animation: fade-in 0.4s 3.0s forwards;
+  }
+
+  @keyframes draw-line { to { stroke-dashoffset: 0; } }
+
+  .sensor:nth-child(1) { animation: card-in 0.5s 3.0s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  .sensor:nth-child(2) { animation: card-in 0.5s 3.2s cubic-bezier(0.4, 0, 0.2, 1) both; }
+  .sensor:nth-child(3) { animation: card-in 0.5s 3.4s cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+  .sensor-spark polyline {
+    stroke-dasharray: 500;
+    stroke-dashoffset: 500;
+  }
+  .sensor:nth-child(1) .sensor-spark polyline { animation: draw-line 0.6s 3.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+  .sensor:nth-child(2) .sensor-spark polyline { animation: draw-line 0.6s 3.4s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+  .sensor:nth-child(3) .sensor-spark polyline { animation: draw-line 0.6s 3.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+  .sensor-spark circle { opacity: 0; animation: fade-in 0.3s 3.7s forwards; }
+
+  @keyframes card-in {
+    0%   { opacity: 0; transform: translateY(8px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+
+  .status-bar .status-dot { animation: none; }
+  .status-bar.is-live .status-dot { animation: pulse-dot 1.6s ease-in-out infinite; }
+
 </style>
 </head>
 <body>
 <div class="screen">
+
+  <!-- BOOT OVERLAY · power-up sequence -->
+  <div class="boot-overlay">
+    <div class="boot-logo">
+      <svg class="boot-glyph" viewBox="0 0 30 30" fill="none">
+        <polygon points="15,1.5 26,7.8 26,22.2 15,28.5 4,22.2 4,7.8" fill="#EB8B23"/>
+        <polygon points="15,5.5 23,10.2 23,19.8 15,24.5 7,19.8 7,10.2" fill="#FFFFFF"/>
+        <polygon points="15,9.5 20,12.4 20,18.2 15,21.0 10,18.2 10,12.4" fill="#EB8B23" opacity="0.75"/>
+        <circle cx="15" cy="15" r="2.4" fill="#FFFFFF"/>
+      </svg>
+      <div class="boot-wordmark">Ark</div>
+    </div>
+  </div>
 
   <!-- HEADER -->
   <div class="header">

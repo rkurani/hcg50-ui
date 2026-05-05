@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, initial-scale=1.0">
+<title>Ark — Boot / Splash</title>
+<style>
+  /* ─────────────────────────────────────────────────────
+     ARK · BOOT / SPLASH · standalone loading animation
+     Loops continuously every ~5 seconds.
+
+     0.0s ─ 0.7s   glyph fades + scales in (centered)
+     0.7s ─ 1.2s   "ARK" wordmark slides in next to glyph
+     1.2s ─ 2.4s   hold + subtle pulse (loading state)
+     2.4s ─ 3.2s   "Initializing sensors…" sub-text fades in
+     3.2s ─ 4.2s   fade out
+     4.2s ─ 5.0s   gap before next loop
+  ───────────────────────────────────────────────────── */
+
+  :root {
+    --bg:       #000000;
+    --orange:   #EB8B23;
+    --text:     #FFFFFF;
+    --text-mid: #B0B0B0;
+    --text-dim: #707070;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 1024px; height: 600px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  .screen {
+    width: 1024px; height: 600px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    position: relative;
+    border: 1px solid #2E2E2E;
+  }
+
+  /* ── LOGO LOCKUP ───────────────────────────────────── */
+  .lockup {
+    display: flex;
+    align-items: center;
+    gap: 28px;
+    animation: lockup-loop 5.0s ease-in-out infinite;
+  }
+
+  .lockup-glyph {
+    width: 110px; height: 110px;
+    flex-shrink: 0;
+    animation: glyph-loop 5.0s ease-in-out infinite;
+  }
+
+  .lockup-wordmark {
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text);
+    line-height: 1;
+    animation: wordmark-loop 5.0s ease-in-out infinite;
+  }
+
+  @keyframes glyph-loop {
+    0%        { opacity: 0; transform: scale(0.3) rotate(-90deg); filter: blur(6px); }
+    14%       { opacity: 1; transform: scale(1.08) rotate(0); filter: blur(0); }
+    18%       { opacity: 1; transform: scale(1) rotate(0); filter: blur(0); }
+    50%       { opacity: 1; transform: scale(1) rotate(0); filter: blur(0); }
+    65%       { opacity: 1; transform: scale(1.04) rotate(0); filter: blur(0); }
+    72%       { opacity: 1; transform: scale(1) rotate(0); filter: blur(0); }
+    84%       { opacity: 0; transform: scale(0.9) rotate(0); filter: blur(2px); }
+    100%      { opacity: 0; transform: scale(0.3) rotate(-90deg); filter: blur(6px); }
+  }
+
+  @keyframes wordmark-loop {
+    0%, 14%   { opacity: 0; transform: translateX(-30px); letter-spacing: 0.5em; }
+    24%       { opacity: 1; transform: translateX(0);    letter-spacing: 0.15em; }
+    50%       { opacity: 1; transform: translateX(0);    letter-spacing: 0.15em; }
+    72%       { opacity: 1; transform: translateX(0);    letter-spacing: 0.15em; }
+    84%, 100% { opacity: 0; transform: translateX(-30px); letter-spacing: 0.5em; }
+  }
+
+  @keyframes lockup-loop {
+    0%, 100%  { transform: translateY(0); }
+    50%       { transform: translateY(-2px); }
+  }
+
+  /* ── STATUS LINE (under logo) ──────────────────────── */
+  .status-line {
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex; align-items: center; gap: 10px;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.30em; text-transform: uppercase;
+    color: var(--text-dim);
+    animation: status-loop 5.0s ease-in-out infinite;
+  }
+
+  .status-line .dots {
+    display: inline-flex; gap: 4px;
+  }
+
+  .status-line .dots span {
+    width: 4px; height: 4px;
+    background: var(--orange);
+    border-radius: 50%;
+    animation: dot-blink 0.9s ease-in-out infinite;
+  }
+  .status-line .dots span:nth-child(2) { animation-delay: 0.15s; }
+  .status-line .dots span:nth-child(3) { animation-delay: 0.30s; }
+
+  @keyframes dot-blink {
+    0%, 100% { opacity: 0.2; transform: scale(0.7); }
+    50%      { opacity: 1;   transform: scale(1.1); }
+  }
+
+  @keyframes status-loop {
+    0%, 28%  { opacity: 0; }
+    40%      { opacity: 1; }
+    72%      { opacity: 1; }
+    84%, 100%{ opacity: 0; }
+  }
+
+  /* ── PROGRESS RING (around the logo, optional flair) ─ */
+  .progress-ring {
+    position: absolute;
+    width: 220px; height: 220px;
+    pointer-events: none;
+  }
+
+  .progress-ring svg {
+    width: 100%; height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  .progress-ring circle {
+    fill: none;
+    stroke: var(--orange);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-dasharray: 660;
+    stroke-dashoffset: 660;
+    opacity: 0;
+    animation: progress-loop 5.0s ease-in-out infinite;
+  }
+
+  @keyframes progress-loop {
+    0%, 14%  { opacity: 0; stroke-dashoffset: 660; }
+    24%      { opacity: 0.5; stroke-dashoffset: 660; }
+    72%      { opacity: 0.5; stroke-dashoffset: 0; }
+    84%, 100%{ opacity: 0; stroke-dashoffset: 0; }
+  }
+
+  /* ── SUBTLE ORANGE GLOW BEHIND LOCKUP (atmosphere) ─── */
+  .glow {
+    position: absolute;
+    width: 600px; height: 300px;
+    background: radial-gradient(ellipse at center,
+      rgba(235,139,35,0.08) 0%,
+      transparent 70%);
+    pointer-events: none;
+    animation: glow-loop 5.0s ease-in-out infinite;
+  }
+
+  @keyframes glow-loop {
+    0%, 14%   { opacity: 0; }
+    50%       { opacity: 1; }
+    84%, 100% { opacity: 0; }
+  }
+
+  /* ── VERSION / BUILD STAMP (corner) ────────────────── */
+  .build-stamp {
+    position: absolute;
+    bottom: 16px; right: 18px;
+    font-size: 9px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-dim);
+    opacity: 0.5;
+    font-variant-numeric: tabular-nums;
+  }
+
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- subtle glow behind logo -->
+  <div class="glow"></div>
+
+  <!-- progress ring around logo -->
+  <div class="progress-ring">
+    <svg viewBox="0 0 220 220">
+      <circle cx="110" cy="110" r="105"/>
+    </svg>
+  </div>
+
+  <!-- LOGO LOCKUP -->
+  <div class="lockup">
+    <svg class="lockup-glyph" viewBox="0 0 30 30" fill="none">
+      <polygon points="15,1.5 26,7.8 26,22.2 15,28.5 4,22.2 4,7.8" fill="#EB8B23"/>
+      <polygon points="15,5.5 23,10.2 23,19.8 15,24.5 7,19.8 7,10.2" fill="#000000"/>
+      <polygon points="15,9.5 20,12.4 20,18.2 15,21.0 10,18.2 10,12.4" fill="#EB8B23" opacity="0.75"/>
+      <circle cx="15" cy="15" r="2.4" fill="#000000"/>
+    </svg>
+    <div class="lockup-wordmark">Ark</div>
+  </div>
+
+  <!-- STATUS LINE -->
+  <div class="status-line">
+    Initializing sensors
+    <span class="dots">
+      <span></span><span></span><span></span>
+    </span>
+  </div>
+
+  <!-- BUILD STAMP -->
+  <div class="build-stamp">v0.1 · DVT · HCG-50K</div>
+
+</div>
+</body>
+</html>
