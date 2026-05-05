@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Ark — Screen Wireframes</title>
+<style>
+  :root {
+    --bg: #0F0F0F; --surface: #181818; --border: #2A2A2A; --border-hi: #3A3A3A;
+    --text: #FFFFFF; --text-mid: #888888; --text-dim: #444444;
+    --orange: #F5A623;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); color: var(--text); font-family: 'Inter','Helvetica Neue',Arial,sans-serif; min-height: 100vh; padding: 40px 48px; }
+  h1 { font-size: 11px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+  h2 { font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .sub { font-size: 13px; color: var(--text-mid); margin-bottom: 32px; }
+
+  /* Section headers */
+  .section { margin-bottom: 56px; }
+  .section-head { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+  .section-title { font-size: 18px; font-weight: 700; color: var(--text); }
+  .section-tag { font-size: 9px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; padding: 3px 8px; border: 1px solid; }
+  .section-tag.recommended { color: var(--orange); border-color: var(--orange); }
+  .section-tag.archive { color: var(--text-dim); border-color: var(--text-dim); }
+  .section-desc { font-size: 12px; color: var(--text-mid); margin-left: auto; }
+
+  /* Cards */
+  .grid { display: grid; gap: 24px; }
+  .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+
+  .card { border: 1px solid var(--border); background: var(--surface); overflow: hidden; cursor: pointer; text-decoration: none; display: block; transition: border-color 0.15s; }
+  .card:hover { border-color: var(--orange); }
+  .thumb { width: 100%; aspect-ratio: 1024/600; background: var(--bg); border-bottom: 1px solid var(--border); overflow: hidden; position: relative; }
+  .thumb iframe { width: 1024px; height: 600px; border: none; transform-origin: top left; pointer-events: none; }
+  .card-meta { padding: 14px 16px; }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+  .card-desc { font-size: 11px; color: var(--text-mid); }
+
+  .tag { display: inline-block; padding: 2px 8px; border: 1px solid; font-size: 9px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 8px; }
+  .tag-dark { color: #FFFFFF; border-color: rgba(255,255,255,0.3); }
+  .tag-light{ color: #F5F5F5; border-color: rgba(245,245,245,0.4); background: rgba(245,245,245,0.05); }
+  .tag-run  { color: #F5A623; border-color: rgba(245,166,35,0.4); }
+  .tag-warn { color: #FFD60A; border-color: rgba(255,214,10,0.4); }
+  .tag-fault{ color: #FF3B30; border-color: rgba(255,59,48,0.4); }
+  .tag-maint{ color: #AAAAAA; border-color: rgba(170,170,170,0.3); }
+</style>
+<script>
+  function scaleIframes() {
+    document.querySelectorAll('.thumb').forEach(thumb => {
+      const w = thumb.clientWidth;
+      const scale = w / 1024;
+      const iframe = thumb.querySelector('iframe');
+      if (iframe) {
+        iframe.style.transform = `scale(${scale})`;
+        thumb.style.height = (600 * scale) + 'px';
+      }
+    });
+  }
+  window.addEventListener('load', scaleIframes);
+  window.addEventListener('resize', scaleIframes);
+</script>
+</head>
+<body>
+
+<h1>Ark HCG-50K · Screen Wireframes</h1>
+<h2>UI Flow Wireframes</h2>
+<p class="sub">1024×600 px · 7" IPS touchscreen · Mythic design language · Click any screen to open full size</p>
+
+<!-- ── V2: Industrial HMI ───────────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-title">v2 · Home Dashboard</span>
+    <span class="section-tag recommended">Industrial HMI</span>
+    <span class="section-desc">ORP hero · 24h sparkline trace · target reference line · status bar full-width.</span>
+  </div>
+
+  <div class="grid cols-2">
+
+    <a class="card" href="home-v2.html" target="_blank">
+      <div class="thumb"><iframe src="home-v2.html?v=2" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v2 · Home (Dark)</div>
+        <div class="card-desc">Pure black, max contrast. ORP hero with 24h trace behind it. Default theme.</div>
+        <div class="tag tag-dark">Dark</div>
+      </div>
+    </a>
+
+    <a class="card" href="home-v2-light.html" target="_blank">
+      <div class="thumb"><iframe src="home-v2-light.html?v=2" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v2 · Home (Light)</div>
+        <div class="card-desc">Pure white, sun-readable. Same ORP hero + sparkline. Toggle for bright bays.</div>
+        <div class="tag tag-light">Light</div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ── V2: Alarm + Fault states ─────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-title">v2 · Alarm & Fault States</span>
+    <span class="section-tag recommended">Industrial HMI</span>
+    <span class="section-desc">Status bar communicates the action. Yellow = attention, red = shutdown.</span>
+  </div>
+
+  <div class="grid cols-2">
+
+    <a class="card" href="home-v2-alarm.html" target="_blank">
+      <div class="thumb"><iframe src="home-v2-alarm.html?v=2" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v2 · Salt Low (Warning)</div>
+        <div class="card-desc">Machine still running, ORP still on target. Salt card highlighted, yellow status bar tells tech to add salt.</div>
+        <div class="tag tag-warn">Warning</div>
+      </div>
+    </a>
+
+    <a class="card" href="home-v2-fault.html" target="_blank">
+      <div class="thumb"><iframe src="home-v2-fault.html?v=2" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v2 · Leak Detected (Fault)</div>
+        <div class="card-desc">All outputs off. Hero + sensors dimmed (last known). Red status bar grows to 130px to dominate.</div>
+        <div class="tag tag-fault">Fault — Shutdown</div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ── V2: Drill-down + Setup ───────────────────────── -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-title">v2 · Drill-down & Setup</span>
+    <span class="section-tag recommended">Industrial HMI</span>
+    <span class="section-desc">Tap-into a sensor, or wizard onboarding flow.</span>
+  </div>
+
+  <div class="grid cols-2">
+
+    <a class="card" href="orp-detail.html" target="_blank">
+      <div class="thumb"><iframe src="orp-detail.html?v=2" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">ORP Detail · Drill-down</div>
+        <div class="card-desc">Tap on POOL ORP from home. Live "orbing" value with radar-ping pulse rings, full 24h history graph, calibrate as primary action.</div>
+        <div class="tag tag-run">Live</div>
+      </div>
+    </a>
+
+    <a class="card" href="setup-target.html" target="_blank">
+      <div class="thumb"><iframe src="setup-target.html?v=2" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">Setup · Set ORP Target</div>
+        <div class="card-desc">First-time onboarding wizard, step 3 of 5. Big dial with corner brackets, ± adjust buttons, slider with recommended-zone overlay.</div>
+        <div class="tag tag-maint">Setup</div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+<!-- ── V1: Web-style (archive for comparison) ────────── -->
+<div class="section">
+  <div class="section-head">
+    <span class="section-title">v1 · Earlier Iterations</span>
+    <span class="section-tag archive">Archive · Web-style</span>
+    <span class="section-desc">Original 6-tile dashboard layout. Kept for comparison.</span>
+  </div>
+
+  <div class="grid cols-3">
+
+    <a class="card" href="home-v1.html" target="_blank">
+      <div class="thumb"><iframe src="home-v1.html" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v1 · Home (Dark)</div>
+        <div class="card-desc">Original web-style 6-tile dashboard. Type sized for ~24" monitor viewing.</div>
+        <div class="tag tag-run">Running</div>
+      </div>
+    </a>
+
+    <a class="card" href="home-v1-light.html" target="_blank">
+      <div class="thumb"><iframe src="home-v1-light.html" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v1 · Home (Light)</div>
+        <div class="card-desc">Light theme experiment. Same web-style layout.</div>
+        <div class="tag tag-light">Light</div>
+      </div>
+    </a>
+
+    <a class="card" href="home-alarm.html" target="_blank">
+      <div class="thumb"><iframe src="home-alarm.html" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v1 · Warning Alarm</div>
+        <div class="card-desc">Salt Low alert. To be rebuilt for v2.</div>
+        <div class="tag tag-warn">Warning</div>
+      </div>
+    </a>
+
+    <a class="card" href="home-fault.html" target="_blank">
+      <div class="thumb"><iframe src="home-fault.html" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v1 · Critical Fault</div>
+        <div class="card-desc">Leak detected, immediate shutdown. To be rebuilt for v2.</div>
+        <div class="tag tag-fault">Fault</div>
+      </div>
+    </a>
+
+    <a class="card" href="maintenance.html" target="_blank">
+      <div class="thumb"><iframe src="maintenance.html" scrolling="no"></iframe></div>
+      <div class="card-meta">
+        <div class="card-title">v1 · Maintenance · Diagnostics</div>
+        <div class="card-desc">Actuator states, tank levels, raw sensors. Will scale type for v2.</div>
+        <div class="tag tag-maint">Maintenance</div>
+      </div>
+    </a>
+
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, initial-scale=1.0">
+<title>Ark — Dashboard (Alarm)</title>
+<style>
+  /* ─────────────────────────────────────────────────────
+     MYTHIC DESIGN SYSTEM — Ark HCG-50K
+     ALARM STATE: Salt Low (Warning — machine still running)
+  ───────────────────────────────────────────────────── */
+  :root {
+    --bg:           #0F0F0F;
+    --surface:      #181818;
+    --surface-2:    #212121;
+    --border:       #2A2A2A;
+    --border-hi:    #3A3A3A;
+    --text:         #FFFFFF;
+    --text-mid:     #AAAAAA;
+    --text-dim:     #555555;
+    --orange:       #F5A623;
+    --orange-dim:   rgba(245,166,35,0.12);
+    --green:        #39C16C;
+    --red:          #FF3B30;
+    --red-dim:      rgba(255,59,48,0.10);
+    --yellow:       #FFD60A;
+    --yellow-dim:   rgba(255,214,10,0.08);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 1024px;
+    height: 600px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  .screen {
+    width: 1024px;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-hi);
+  }
+
+  /* ── HEADER ────────────────────────────────────────── */
+  .header {
+    height: 54px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 18px 0 16px;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-hi);
+    background: var(--surface);
+  }
+
+  .hex-logo { width: 30px; height: 30px; flex-shrink: 0; }
+  .brand {
+    font-size: 13px; font-weight: 800; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--text);
+  }
+  .header-sep { width: 1px; height: 24px; background: var(--border-hi); margin: 0 6px; }
+  .header-date { font-size: 12px; font-weight: 400; letter-spacing: 0.08em; color: var(--text-mid); text-transform: uppercase; }
+  .flex-gap { flex: 1; }
+  .clock { font-size: 26px; font-weight: 200; letter-spacing: 0.06em; font-variant-numeric: tabular-nums; }
+
+  .run-pill {
+    height: 30px; padding: 0 12px;
+    display: flex; align-items: center; gap: 7px;
+    border: 1.5px solid var(--orange);
+    background: var(--orange-dim);
+    font-size: 10px; font-weight: 800; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--orange);
+  }
+  .run-pill .blink {
+    width: 6px; height: 6px; background: var(--orange);
+    border-radius: 50%; animation: blink 1.8s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+
+  /* ── ALARM BANNER ──────────────────────────────────── */
+  .alarm-banner {
+    height: 44px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    gap: 12px;
+    background: var(--yellow-dim);
+    border-bottom: 1px solid rgba(255,214,10,0.35);
+    border-top: 2px solid var(--yellow);
+  }
+
+  .alarm-icon {
+    width: 22px; height: 22px; flex-shrink: 0;
+  }
+
+  .alarm-text {
+    flex: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+  }
+
+  .alarm-title {
+    font-size: 12px; font-weight: 800;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--yellow);
+  }
+
+  .alarm-desc {
+    font-size: 12px; font-weight: 400;
+    color: var(--text-mid);
+  }
+
+  .alarm-dismiss {
+    height: 28px; padding: 0 14px;
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid rgba(255,214,10,0.4);
+    font-size: 10px; font-weight: 800;
+    letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--yellow);
+    cursor: pointer;
+    background: transparent;
+  }
+
+  /* ── BODY ──────────────────────────────────────────── */
+  .body {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+
+  /* ── LEFT — CELLS ──────────────────────────────────── */
+  .panel-cells {
+    width: 440px; flex-shrink: 0;
+    display: flex;
+    border-right: 1px solid var(--border-hi);
+  }
+
+  .cell-card {
+    flex: 1;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 22px 20px 18px;
+    position: relative;
+  }
+  .cell-card + .cell-card { border-left: 1px solid var(--border); }
+  .cell-card.active::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--orange);
+  }
+
+  .cell-main { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+  .card-label { font-size: 9px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+  .cell-amps { font-size: 72px; font-weight: 700; line-height: 1; color: var(--orange); font-variant-numeric: tabular-nums; }
+  .cell-amps-unit { font-size: 20px; font-weight: 400; color: var(--text-mid); margin-left: 3px; vertical-align: baseline; position: relative; top: -8px; }
+  .cell-volts-row { display: flex; align-items: baseline; gap: 4px; }
+  .cell-volts { font-size: 28px; font-weight: 300; color: var(--text); font-variant-numeric: tabular-nums; }
+  .cell-volts-unit { font-size: 13px; color: var(--text-dim); }
+  .cell-setpoint { font-size: 10px; font-weight: 600; letter-spacing: 0.10em; color: var(--text-dim); text-transform: uppercase; }
+  .cell-setpoint strong { color: var(--text-mid); font-weight: 700; }
+  .cell-status-row { display: flex; align-items: center; gap: 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--orange); }
+  .cell-status-row .dot { width: 5px; height: 5px; background: var(--orange); border-radius: 50%; }
+
+  /* ── RIGHT — SENSORS ───────────────────────────────── */
+  .panel-sensors {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .sensor-card {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 22px 22px 18px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+  .sensor-card:nth-child(2n)  { border-right: none; }
+  .sensor-card:nth-child(n+3) { border-bottom: none; }
+
+  /* ⚠ Alarm state for Salt/EC */
+  .sensor-card.warn {
+    background: var(--yellow-dim);
+    border-color: rgba(255,214,10,0.30);
+  }
+
+  .sensor-main { display: flex; flex-direction: column; justify-content: center; }
+  .sensor-val { font-size: 56px; font-weight: 700; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; }
+  .sensor-val.large-unit { font-size: 44px; }
+  .sensor-unit { font-size: 13px; font-weight: 400; color: var(--text-mid); margin-left: 2px; vertical-align: baseline; position: relative; top: -4px; }
+
+  .sensor-card.warn .sensor-val { color: var(--yellow); }
+
+  .sensor-status { display: flex; align-items: center; gap: 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+  .sensor-status .dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .s-ok   { color: var(--green); } .s-ok .dot   { background: var(--green); }
+  .s-warn { color: var(--yellow); } .s-warn .dot { background: var(--yellow); }
+  .s-bad  { color: var(--red); }   .s-bad .dot  { background: var(--red); }
+
+  /* ── FOOTER ────────────────────────────────────────── */
+  .footer {
+    height: 60px;
+    flex-shrink: 0;
+    border-top: 1px solid var(--border-hi);
+    display: flex;
+    align-items: stretch;
+    background: var(--surface);
+  }
+
+  .footer-btn {
+    width: 120px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-mid); cursor: pointer;
+    border-right: 1px solid var(--border-hi);
+  }
+  .footer-btn:hover { background: var(--surface-2); color: var(--text); }
+
+  .footer-schedule {
+    flex: 1; display: flex; align-items: center;
+    padding: 0 22px; gap: 14px;
+  }
+  .sched-pill { display: flex; align-items: center; gap: 6px; font-size: 9px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase; color: var(--orange); }
+  .sched-pill .dot { width: 5px; height: 5px; background: var(--orange); border-radius: 50%; animation: blink 1.8s ease-in-out infinite; }
+  .sched-divider { width: 1px; height: 20px; background: var(--border-hi); }
+  .sched-detail { font-size: 13px; font-weight: 400; color: var(--text-mid); }
+  .sched-detail strong { color: var(--text); font-weight: 600; }
+
+  /* ⚠ Alarm button — active state */
+  .footer-alarms {
+    width: 160px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase;
+    border-left: 1px solid var(--yellow);
+    background: rgba(255,214,10,0.07);
+    color: var(--yellow);
+    cursor: pointer;
+    animation: alarm-pulse 2.4s ease-in-out infinite;
+  }
+
+  @keyframes alarm-pulse {
+    0%, 100% { background: rgba(255,214,10,0.07); }
+    50%       { background: rgba(255,214,10,0.14); }
+  }
+
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- ── HEADER ──────────────────────────────────────── -->
+  <div class="header">
+    <svg class="hex-logo" viewBox="0 0 30 30" fill="none">
+      <polygon points="15,1.5 26,7.8 26,22.2 15,28.5 4,22.2 4,7.8" fill="#F5A623"/>
+      <polygon points="15,5.5 23,10.2 23,19.8 15,24.5 7,19.8 7,10.2" fill="#0F0F0F"/>
+      <polygon points="15,9.5 20,12.4 20,18.2 15,21.0 10,18.2 10,12.4" fill="#F5A623" opacity="0.75"/>
+      <circle cx="15" cy="15" r="2.4" fill="#0F0F0F"/>
+    </svg>
+    <div class="brand">Ark</div>
+    <div class="header-sep"></div>
+    <div class="header-date">Mon · May 4, 2026</div>
+    <div class="flex-gap"></div>
+    <div class="clock">10:42 AM</div>
+    <div class="header-sep"></div>
+    <div class="run-pill"><div class="blink"></div>Running</div>
+  </div>
+
+  <!-- ── ALARM BANNER ────────────────────────────────── -->
+  <div class="alarm-banner">
+
+    <!-- Warning triangle icon -->
+    <svg class="alarm-icon" viewBox="0 0 22 22" fill="none">
+      <path d="M11 2L20.5 19H1.5L11 2Z" stroke="#FFD60A" stroke-width="1.5" stroke-linejoin="round"/>
+      <line x1="11" y1="9" x2="11" y2="14" stroke="#FFD60A" stroke-width="1.5" stroke-linecap="round"/>
+      <circle cx="11" cy="17" r="0.8" fill="#FFD60A"/>
+    </svg>
+
+    <div class="alarm-text">
+      <span class="alarm-title">Salt Low</span>
+      <span class="alarm-desc">Brine EC below minimum threshold — add salt to brine tank to resume normal output.</span>
+    </div>
+
+    <div class="alarm-dismiss">Dismiss</div>
+  </div>
+
+  <!-- ── BODY ────────────────────────────────────────── -->
+  <div class="body">
+
+    <!-- Left: Cells -->
+    <div class="panel-cells">
+      <div class="cell-card active">
+        <div class="card-label">Cell 1</div>
+        <div class="cell-main">
+          <div><span class="cell-amps">15.2</span><span class="cell-amps-unit">A</span></div>
+          <div class="cell-volts-row"><span class="cell-volts">8.2</span><span class="cell-volts-unit">V</span></div>
+          <div class="cell-setpoint">Setpoint <strong>15.0 A</strong></div>
+        </div>
+        <div class="cell-status-row"><div class="dot"></div>Active</div>
+      </div>
+
+      <div class="cell-card active">
+        <div class="card-label">Cell 2</div>
+        <div class="cell-main">
+          <div><span class="cell-amps">14.8</span><span class="cell-amps-unit">A</span></div>
+          <div class="cell-volts-row"><span class="cell-volts">8.1</span><span class="cell-volts-unit">V</span></div>
+          <div class="cell-setpoint">Setpoint <strong>15.0 A</strong></div>
+        </div>
+        <div class="cell-status-row"><div class="dot"></div>Active</div>
+      </div>
+    </div>
+
+    <!-- Right: Sensors -->
+    <div class="panel-sensors">
+
+      <div class="sensor-card">
+        <div class="card-label">Pool ORP</div>
+        <div class="sensor-main"><div><span class="sensor-val">712</span><span class="sensor-unit">mV</span></div></div>
+        <div class="sensor-status s-ok"><div class="dot"></div>Normal</div>
+      </div>
+
+      <div class="sensor-card">
+        <div class="card-label">pH</div>
+        <div class="sensor-main"><div><span class="sensor-val">7.4</span></div></div>
+        <div class="sensor-status s-ok"><div class="dot"></div>Normal</div>
+      </div>
+
+      <!-- ⚠ Highlighted: Salt low -->
+      <div class="sensor-card warn">
+        <div class="card-label">Salt / EC</div>
+        <div class="sensor-main">
+          <div><span class="sensor-val large-unit">3.2</span><span class="sensor-unit">mS/cm</span></div>
+        </div>
+        <div class="sensor-status s-warn"><div class="dot"></div>Low — Add Salt</div>
+      </div>
+
+      <div class="sensor-card">
+        <div class="card-label">Pool Temp</div>
+        <div class="sensor-main"><div><span class="sensor-val">78°</span><span class="sensor-unit">F</span></div></div>
+        <div class="sensor-status s-ok"><div class="dot"></div>Normal</div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ── FOOTER ──────────────────────────────────────── -->
+  <div class="footer">
+    <div class="footer-btn">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <rect y="0" width="16" height="1.5" fill="currentColor" rx="0.75"/>
+        <rect y="5.25" width="16" height="1.5" fill="currentColor" rx="0.75"/>
+        <rect y="10.5" width="16" height="1.5" fill="currentColor" rx="0.75"/>
+      </svg>
+      Menu
+    </div>
+    <div class="footer-schedule">
+      <div class="sched-pill"><div class="dot"></div>Running</div>
+      <div class="sched-divider"></div>
+      <div class="sched-detail">Ends <strong>2:30 PM</strong> · 3h 48m remaining</div>
+      <div class="sched-divider"></div>
+      <div class="sched-detail" style="color: var(--text-dim); font-size:12px;">Next: 8:00 AM tomorrow</div>
+    </div>
+    <div class="footer-alarms">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1L13 12H1L7 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <line x1="7" y1="5.5" x2="7" y2="8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="7" cy="10.5" r="0.6" fill="currentColor"/>
+      </svg>
+      1 Alarm
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, initial-scale=1.0">
+<title>Ark — FAULT STATE</title>
+<style>
+  /* ─────────────────────────────────────────────────────
+     MYTHIC DESIGN SYSTEM — Ark HCG-50K
+     FAULT STATE: Leak Detected — immediate shutdown
+     All outputs off. Operator must physically inspect.
+  ───────────────────────────────────────────────────── */
+  :root {
+    --bg:        #0F0F0F;
+    --surface:   #181818;
+    --border-hi: #3A3A3A;
+    --border:    #2A2A2A;
+    --text:      #FFFFFF;
+    --text-mid:  #AAAAAA;
+    --text-dim:  #555555;
+    --orange:    #F5A623;
+    --red:       #FF3B30;
+    --red-dim:   rgba(255,59,48,0.10);
+    --red-mid:   rgba(255,59,48,0.20);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 1024px; height: 600px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  .screen {
+    width: 1024px; height: 600px;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--border-hi);
+    /* Red glow on the outer border for fault state */
+    box-shadow: inset 0 0 0 2px rgba(255,59,48,0.4);
+  }
+
+  /* ── HEADER ────────────────────────────────────────── */
+  .header {
+    height: 54px; flex-shrink: 0;
+    display: flex; align-items: center;
+    padding: 0 18px 0 16px; gap: 10px;
+    border-bottom: 1px solid var(--border-hi);
+    background: var(--surface);
+  }
+  .hex-logo { width: 30px; height: 30px; flex-shrink: 0; }
+  .brand { font-size: 13px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+  .header-sep { width: 1px; height: 24px; background: var(--border-hi); margin: 0 6px; }
+  .header-date { font-size: 12px; font-weight: 400; letter-spacing: 0.08em; color: var(--text-mid); text-transform: uppercase; }
+  .flex-gap { flex: 1; }
+  .clock { font-size: 26px; font-weight: 200; font-variant-numeric: tabular-nums; }
+
+  /* Fault pill replaces RUNNING */
+  .fault-pill {
+    height: 30px; padding: 0 14px;
+    display: flex; align-items: center; gap: 8px;
+    border: 1.5px solid var(--red);
+    background: var(--red-dim);
+    font-size: 10px; font-weight: 800; letter-spacing: 0.18em;
+    text-transform: uppercase; color: var(--red);
+  }
+  .fault-pill .blink {
+    width: 8px; height: 8px; background: var(--red);
+    border-radius: 50%;
+    animation: blink 0.8s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.1;} }
+
+  /* ── CRITICAL FAULT BANNER ─────────────────────────── */
+  .fault-banner {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 24px;
+    background: var(--red-dim);
+    border-bottom: 2px solid var(--red);
+    border-top: 2px solid var(--red);
+    gap: 8px;
+    animation: fault-pulse 1.2s ease-in-out infinite;
+  }
+
+  @keyframes fault-pulse {
+    0%,100% { background: rgba(255,59,48,0.10); }
+    50%      { background: rgba(255,59,48,0.18); }
+  }
+
+  .fault-headline {
+    display: flex; align-items: center; gap: 14px;
+  }
+
+  .fault-icon { width: 28px; height: 28px; flex-shrink: 0; }
+
+  .fault-title {
+    font-size: 20px; font-weight: 900;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--red);
+  }
+
+  .fault-sub {
+    font-size: 13px; font-weight: 400;
+    color: var(--text-mid); text-align: center;
+    letter-spacing: 0.03em;
+  }
+
+  .fault-sub strong { color: var(--text); }
+
+  /* ── BODY — STATUS SUMMARY ─────────────────────────── */
+  .body {
+    flex: 1; display: flex; min-height: 0;
+  }
+
+  /* Left: Shutdown cells */
+  .panel-cells {
+    width: 440px; flex-shrink: 0;
+    display: flex;
+    border-right: 1px solid var(--border-hi);
+  }
+
+  .cell-card {
+    flex: 1; display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 22px 20px 18px;
+    position: relative;
+    opacity: 0.55;  /* dimmed — cells are off */
+  }
+  .cell-card + .cell-card { border-left: 1px solid var(--border); }
+
+  /* Red edge — fault state */
+  .cell-card::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 3px; background: var(--red);
+  }
+
+  .cell-main { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+  .card-label { font-size: 9px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 12px; }
+  .cell-amps { font-size: 72px; font-weight: 700; line-height: 1; color: var(--text-mid); font-variant-numeric: tabular-nums; }
+  .cell-amps-unit { font-size: 20px; font-weight: 400; color: var(--text-dim); margin-left: 3px; vertical-align: baseline; position: relative; top: -8px; }
+  .cell-volts-row { display: flex; align-items: baseline; gap: 4px; }
+  .cell-volts { font-size: 28px; font-weight: 300; color: var(--text-mid); font-variant-numeric: tabular-nums; }
+  .cell-volts-unit { font-size: 13px; color: var(--text-dim); }
+  .cell-status-row { display: flex; align-items: center; gap: 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--red); }
+  .cell-status-row .dot { width: 5px; height: 5px; background: var(--red); border-radius: 50%; }
+
+  /* Right: sensor readings (show last-known values, dimmed) */
+  .panel-sensors {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .sensor-card {
+    display: grid; grid-template-rows: auto 1fr auto;
+    padding: 22px 22px 18px;
+    border-right: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    opacity: 0.55;  /* dimmed — last known values only */
+  }
+  .sensor-card:nth-child(2n)  { border-right: none; }
+  .sensor-card:nth-child(n+3) { border-bottom: none; }
+
+  .sensor-main { display: flex; flex-direction: column; justify-content: center; }
+  .sensor-val { font-size: 56px; font-weight: 700; line-height: 1; color: var(--text-mid); font-variant-numeric: tabular-nums; }
+  .sensor-val.large-unit { font-size: 44px; }
+  .sensor-unit { font-size: 13px; font-weight: 400; color: var(--text-dim); margin-left: 2px; vertical-align: baseline; position: relative; top: -4px; }
+  .sensor-status { display: flex; align-items: center; gap: 7px; font-size: 9px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); }
+  .sensor-status .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text-dim); }
+
+  /* ── FOOTER ────────────────────────────────────────── */
+  .footer {
+    height: 60px; flex-shrink: 0;
+    border-top: 1px solid var(--border-hi);
+    display: flex; align-items: stretch;
+    background: var(--surface);
+  }
+
+  .footer-btn {
+    width: 120px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-mid); cursor: pointer;
+    border-right: 1px solid var(--border-hi);
+  }
+
+  .footer-fault-status {
+    flex: 1; display: flex; align-items: center;
+    padding: 0 22px; gap: 14px;
+  }
+
+  .shutdown-label {
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase; color: var(--red);
+    display: flex; align-items: center; gap: 7px;
+  }
+  .shutdown-label .dot {
+    width: 6px; height: 6px; background: var(--red);
+    border-radius: 50%; animation: blink 0.8s ease-in-out infinite;
+  }
+
+  .sched-divider { width: 1px; height: 20px; background: var(--border-hi); }
+
+  .footer-shutdown-msg {
+    font-size: 13px; color: var(--text-mid);
+  }
+  .footer-shutdown-msg strong { color: var(--text); }
+
+  /* Fault alarms button */
+  .footer-alarms {
+    width: 160px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; gap: 9px;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.15em; text-transform: uppercase;
+    border-left: 2px solid var(--red);
+    background: var(--red-dim);
+    color: var(--red);
+    cursor: pointer;
+    animation: blink 0.8s ease-in-out infinite;
+  }
+
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- ── HEADER ──────────────────────────────────────── -->
+  <div class="header">
+    <svg class="hex-logo" viewBox="0 0 30 30" fill="none">
+      <polygon points="15,1.5 26,7.8 26,22.2 15,28.5 4,22.2 4,7.8" fill="#F5A623"/>
+      <polygon points="15,5.5 23,10.2 23,19.8 15,24.5 7,19.8 7,10.2" fill="#0F0F0F"/>
+      <polygon points="15,9.5 20,12.4 20,18.2 15,21.0 10,18.2 10,12.4" fill="#F5A623" opacity="0.75"/>
+      <circle cx="15" cy="15" r="2.4" fill="#0F0F0F"/>
+    </svg>
+    <div class="brand">Ark</div>
+    <div class="header-sep"></div>
+    <div class="header-date">Mon · May 4, 2026</div>
+    <div class="flex-gap"></div>
+    <div class="clock">10:42 AM</div>
+    <div class="header-sep"></div>
+    <div class="fault-pill"><div class="blink"></div>Fault — All Off</div>
+  </div>
+
+  <!-- ── CRITICAL FAULT BANNER ───────────────────────── -->
+  <div class="fault-banner">
+    <div class="fault-headline">
+      <svg class="fault-icon" viewBox="0 0 28 28" fill="none">
+        <path d="M14 2L26 24H2L14 2Z" stroke="#FF3B30" stroke-width="2" stroke-linejoin="round"/>
+        <line x1="14" y1="10" x2="14" y2="17" stroke="#FF3B30" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="14" cy="21" r="1" fill="#FF3B30"/>
+      </svg>
+      <div class="fault-title">Leak Detected — Immediate Shutdown</div>
+    </div>
+    <div class="fault-sub">
+      All outputs are off. <strong>Do not restart until leak is located and repaired.</strong>
+      Inspect all valve connections and tubing before resuming operation.
+    </div>
+  </div>
+
+  <!-- ── BODY ────────────────────────────────────────── -->
+  <div class="body">
+
+    <!-- Cells — dimmed/off -->
+    <div class="panel-cells">
+      <div class="cell-card">
+        <div class="card-label">Cell 1</div>
+        <div class="cell-main">
+          <div><span class="cell-amps">0.0</span><span class="cell-amps-unit">A</span></div>
+          <div class="cell-volts-row"><span class="cell-volts">0.0</span><span class="cell-volts-unit">V</span></div>
+        </div>
+        <div class="cell-status-row"><div class="dot"></div>Shutdown</div>
+      </div>
+      <div class="cell-card">
+        <div class="card-label">Cell 2</div>
+        <div class="cell-main">
+          <div><span class="cell-amps">0.0</span><span class="cell-amps-unit">A</span></div>
+          <div class="cell-volts-row"><span class="cell-volts">0.0</span><span class="cell-volts-unit">V</span></div>
+        </div>
+        <div class="cell-status-row"><div class="dot"></div>Shutdown</div>
+      </div>
+    </div>
+
+    <!-- Sensors — last known, dimmed -->
+    <div class="panel-sensors">
+      <div class="sensor-card">
+        <div class="card-label">Pool ORP</div>
+        <div class="sensor-main"><div><span class="sensor-val">712</span><span class="sensor-unit">mV</span></div></div>
+        <div class="sensor-status"><div class="dot"></div>Last known</div>
+      </div>
+      <div class="sensor-card">
+        <div class="card-label">pH</div>
+        <div class="sensor-main"><div><span class="sensor-val">7.4</span></div></div>
+        <div class="sensor-status"><div class="dot"></div>Last known</div>
+      </div>
+      <div class="sensor-card">
+        <div class="card-label">Salt / EC</div>
+        <div class="sensor-main"><div><span class="sensor-val large-unit">28.5</span><span class="sensor-unit">mS/cm</span></div></div>
+        <div class="sensor-status"><div class="dot"></div>Last known</div>
+      </div>
+      <div class="sensor-card">
+        <div class="card-label">Pool Temp</div>
+        <div class="sensor-main"><div><span class="sensor-val">78°</span><span class="sensor-unit">F</span></div></div>
+        <div class="sensor-status"><div class="dot"></div>Last known</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ── FOOTER ──────────────────────────────────────── -->
+  <div class="footer">
+    <div class="footer-btn">
+      <svg width="16" height="12" viewBox="0 0 16 12" fill="none">
+        <rect y="0" width="16" height="1.5" fill="currentColor" rx="0.75"/>
+        <rect y="5.25" width="16" height="1.5" fill="currentColor" rx="0.75"/>
+        <rect y="10.5" width="16" height="1.5" fill="currentColor" rx="0.75"/>
+      </svg>
+      Menu
+    </div>
+    <div class="footer-fault-status">
+      <div class="shutdown-label"><div class="dot"></div>All Outputs Off</div>
+      <div class="sched-divider"></div>
+      <div class="footer-shutdown-msg">
+        Schedule paused · <strong>Fault must be cleared before restart</strong>
+      </div>
+    </div>
+    <div class="footer-alarms">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+        <path d="M7 1L13 12H1L7 1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <line x1="7" y1="5.5" x2="7" y2="8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="7" cy="10.5" r="0.6" fill="currentColor"/>
+      </svg>
+      1 Fault
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

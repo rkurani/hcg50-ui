@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, initial-scale=1.0">
+<title>Ark — Setup · Set ORP Target</title>
+<style>
+  /* ─────────────────────────────────────────────────────
+     ARK HCG-50K · SETUP / ONBOARDING
+     Step 3 of 5: Set Pool ORP Target
+     Wizard pattern — large dial value + slider + nav
+  ───────────────────────────────────────────────────── */
+  :root {
+    --bg:        #000000;
+    --surface:   #0A0A0A;
+    --line:      #2E2E2E;
+    --line-hi:   #4A4A4A;
+    --text:      #FFFFFF;
+    --text-mid:  #B0B0B0;
+    --text-dim:  #707070;
+    --orange:    #EB8B23;
+    --orange-dim:rgba(235,139,35,0.18);
+    --hasa-blue: #3E6991;
+    --hasa-gray: #A2AAAD;
+    --green:     #00C853;
+    --yellow:    #FFAB00;
+    --red:       #D50000;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 1024px; height: 600px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  .screen {
+    width: 1024px; height: 600px;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--line);
+  }
+
+  /* ── HEADER (44px with progress) ───────────────────── */
+  .header {
+    height: 44px; flex-shrink: 0;
+    display: flex; align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid var(--line);
+    gap: 14px;
+    background: var(--surface);
+  }
+
+  .hex-logo { width: 22px; height: 22px; flex-shrink: 0; }
+
+  .brand {
+    font-size: 11px; font-weight: 800;
+    letter-spacing: 0.22em; text-transform: uppercase;
+  }
+
+  .header-sep { width: 1px; height: 16px; background: var(--line); margin: 0 4px; }
+
+  .header-context {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-mid);
+  }
+
+  .header-flex { flex: 1; }
+
+  /* Progress dots — 5 steps */
+  .progress {
+    display: flex; gap: 8px; align-items: center;
+  }
+
+  .progress-step {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 1.5px solid var(--line-hi);
+  }
+  .progress-step.done {
+    background: var(--text-mid);
+    border-color: var(--text-mid);
+  }
+  .progress-step.current {
+    background: var(--orange);
+    border-color: var(--orange);
+    box-shadow: 0 0 0 3px rgba(235,139,35,0.20);
+  }
+
+  .progress-label {
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--text-mid);
+    margin-left: 4px;
+  }
+
+  /* ── TITLE ZONE ────────────────────────────────────── */
+  .title-zone {
+    flex-shrink: 0;
+    padding: 32px 48px 16px;
+    text-align: center;
+  }
+
+  .title {
+    font-size: 28px; font-weight: 800;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    font-size: 14px; font-weight: 500;
+    color: var(--text-mid);
+    line-height: 1.4;
+  }
+
+  /* ── DIAL (the input value display) ────────────────── */
+  .dial-zone {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 0 48px;
+    gap: 28px;
+    position: relative;
+  }
+
+  .dial {
+    display: flex; flex-direction: column;
+    align-items: center;
+    position: relative;
+    padding: 24px 56px;
+    border: 2px solid var(--orange);
+    background: radial-gradient(circle at center,
+      rgba(235,139,35,0.08) 0%, transparent 100%);
+  }
+
+  /* Decorative corners on the dial frame */
+  .dial::before,
+  .dial::after,
+  .dial-corner-bl,
+  .dial-corner-br {
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+    border: 2px solid var(--orange);
+  }
+  .dial::before     { top: -2px; left: -2px;  border-right: none; border-bottom: none; }
+  .dial::after      { top: -2px; right: -2px; border-left: none;  border-bottom: none; }
+  .dial-corner-bl   { bottom: -2px; left: -2px;  border-right: none; border-top: none; }
+  .dial-corner-br   { bottom: -2px; right: -2px; border-left: none;  border-top: none; }
+
+  .dial-value-row {
+    display: flex; align-items: baseline;
+    line-height: 0.9;
+  }
+
+  .dial-value {
+    font-size: 140px;
+    font-weight: 700;
+    line-height: 0.9;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.05em;
+  }
+
+  .dial-unit {
+    font-size: 36px;
+    font-weight: 500;
+    color: var(--orange);
+    margin-left: 10px;
+    letter-spacing: 0;
+  }
+
+  .dial-action-hint {
+    margin-top: 8px;
+    font-size: 10px; font-weight: 800;
+    letter-spacing: 0.20em; text-transform: uppercase;
+    color: var(--text-dim);
+  }
+
+  /* Adjustment buttons (− / +) */
+  .adjust {
+    display: flex; gap: 12px;
+    margin-top: -4px;
+  }
+
+  .adjust-btn {
+    width: 64px; height: 64px;
+    border: 2px solid var(--line-hi);
+    background: transparent;
+    color: var(--text);
+    font-size: 28px; font-weight: 300;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+  }
+  .adjust-btn:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+
+  /* ── SLIDER ────────────────────────────────────────── */
+  .slider-zone {
+    flex-shrink: 0;
+    padding: 0 48px 16px;
+  }
+
+  .slider-track {
+    position: relative;
+    height: 8px;
+    background: var(--line);
+    margin: 24px 0 16px;
+  }
+
+  /* Recommended range overlay (650-750 of 600-800) */
+  .slider-recommended {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 25%; right: 25%;
+    background: rgba(0,200,83,0.20);
+    border-left: 1px solid rgba(0,200,83,0.5);
+    border-right: 1px solid rgba(0,200,83,0.5);
+  }
+
+  /* Filled portion — left of thumb */
+  .slider-fill {
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0; right: 50%;
+    background: var(--orange);
+  }
+
+  /* Thumb at 700 (50%) */
+  .slider-thumb {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 28px; height: 28px;
+    background: var(--orange);
+    border: 3px solid var(--text);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(235,139,35,0.20);
+  }
+
+  .slider-labels {
+    display: flex; justify-content: space-between;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.10em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .slider-labels .center { color: var(--text); }
+
+  .recommendation {
+    margin-top: 18px;
+    text-align: center;
+    font-size: 11px; font-weight: 700;
+    letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--green);
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+  }
+
+  .recommendation .dot {
+    width: 6px; height: 6px;
+    background: var(--green); border-radius: 50%;
+  }
+
+  /* ── FOOTER ────────────────────────────────────────── */
+  .footer {
+    height: 72px; flex-shrink: 0;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 1px solid var(--line);
+  }
+
+  .footer-btn {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px;
+    font-size: 13px; font-weight: 800;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .footer-btn.back {
+    color: var(--text-mid);
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+  }
+  .footer-btn.back:hover { color: var(--text); }
+
+  .footer-btn.next {
+    color: #000000;
+    background: var(--orange);
+  }
+  .footer-btn.next:hover { background: #D6791F; }
+
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- HEADER -->
+  <div class="header">
+    <svg class="hex-logo" viewBox="0 0 30 30" fill="none">
+      <polygon points="15,1.5 26,7.8 26,22.2 15,28.5 4,22.2 4,7.8" fill="#EB8B23"/>
+      <polygon points="15,5.5 23,10.2 23,19.8 15,24.5 7,19.8 7,10.2" fill="#000000"/>
+      <polygon points="15,9.5 20,12.4 20,18.2 15,21.0 10,18.2 10,12.4" fill="#EB8B23" opacity="0.75"/>
+      <circle cx="15" cy="15" r="2.4" fill="#000000"/>
+    </svg>
+    <div class="brand">Ark</div>
+    <div class="header-sep"></div>
+    <div class="header-context">First-Time Setup</div>
+    <div class="header-flex"></div>
+
+    <div class="progress">
+      <div class="progress-step done"></div>
+      <div class="progress-step done"></div>
+      <div class="progress-step current"></div>
+      <div class="progress-step"></div>
+      <div class="progress-step"></div>
+      <div class="progress-label">Step 3 of 5</div>
+    </div>
+  </div>
+
+  <!-- TITLE -->
+  <div class="title-zone">
+    <div class="title">Set Pool ORP Target</div>
+    <div class="subtitle">The unit will run electrolysis to keep your pool's ORP at this level. We'll learn your pool over the first week.</div>
+  </div>
+
+  <!-- DIAL + ADJUST -->
+  <div class="dial-zone">
+
+    <div class="dial">
+      <div class="dial-corner-bl"></div>
+      <div class="dial-corner-br"></div>
+
+      <div class="dial-value-row">
+        <div class="dial-value">700</div>
+        <div class="dial-unit">mV</div>
+      </div>
+      <div class="dial-action-hint">Tap ± or drag the slider to adjust</div>
+    </div>
+
+    <div class="adjust">
+      <button class="adjust-btn">−</button>
+      <button class="adjust-btn">+</button>
+    </div>
+
+  </div>
+
+  <!-- SLIDER -->
+  <div class="slider-zone">
+
+    <div class="slider-track">
+      <div class="slider-recommended"></div>
+      <div class="slider-fill"></div>
+      <div class="slider-thumb"></div>
+    </div>
+
+    <div class="slider-labels">
+      <span>600 mV</span>
+      <span class="center">700 mV</span>
+      <span>800 mV</span>
+    </div>
+
+    <div class="recommendation">
+      <div class="dot"></div>
+      Recommended: 650–750 mV for residential pools
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <a class="footer-btn back" href="#">
+      <svg width="9" height="13" viewBox="0 0 9 13" fill="none">
+        <path d="M8 1L1 6.5L8 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back · Schedule
+    </a>
+    <a class="footer-btn next" href="#">
+      Next · Sensors
+      <svg width="9" height="13" viewBox="0 0 9 13" fill="none">
+        <path d="M1 1L8 6.5L1 12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </a>
+  </div>
+
+</div>
+</body>
+</html>

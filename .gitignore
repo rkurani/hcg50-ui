@@ -1,0 +1,11 @@
+# Internal context — keep out of public repo
+CLAUDE.md
+.claude/
+*.pdf
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
+node_modules/

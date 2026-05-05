@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1024, initial-scale=1.0">
+<title>Ark — Home v2 (Light / HMI)</title>
+<style>
+  /* ─────────────────────────────────────────────────────
+     ARK HCG-50K · v2 · LIGHT · INDUSTRIAL HMI
+     Hero: Pool ORP (the only actionable chemistry value
+     the pool service tech actually reads from across the
+     equipment bay). Cells move to Maintenance > Diagnostics.
+  ───────────────────────────────────────────────────── */
+  :root {
+    --bg:        #F4F4F4;
+    --surface:   #ECECEA;
+    --line:      #C8C8C2;
+    --line-hi:   #888880;
+    --text:      #000000;
+    --text-mid:  #4A4A4A;
+    --text-dim:  #808080;
+    /* HASA brand (from hasa.com css custom props) */
+    --orange:    #EB8B23;
+    --orange-dim:rgba(235,139,35,0.14);
+    --hasa-blue: #3E6991;
+    --hasa-gray: #A2AAAD;
+    /* Saturated traffic-light status — survives sun glare */
+    --green:     #00A040;
+    --yellow:    #C77700;
+    --red:       #C20018;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    width: 1024px; height: 600px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    user-select: none;
+  }
+
+  .screen {
+    width: 1024px; height: 600px;
+    display: flex; flex-direction: column;
+    border: 1px solid var(--line);
+  }
+
+  /* ── HEADER (36px, minimal) ────────────────────────── */
+  .header {
+    height: 36px;
+    flex-shrink: 0;
+    display: flex; align-items: center;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--line);
+    gap: 10px;
+    background: var(--surface);
+  }
+
+  .hex-logo { width: 22px; height: 22px; flex-shrink: 0; }
+
+  .brand {
+    font-size: 12px; font-weight: 800;
+    letter-spacing: 0.20em; text-transform: uppercase;
+  }
+
+  .header-flex { flex: 1; }
+
+  .header-date {
+    font-size: 12px; font-weight: 500;
+    letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--text-mid); font-variant-numeric: tabular-nums;
+  }
+
+  .header-sep { width: 1px; height: 16px; background: var(--line); margin: 0 4px; }
+
+  .header-clock {
+    font-size: 16px; font-weight: 500;
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── HERO: POOL ORP ────────────────────────────────── */
+  .hero {
+    flex: 1;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 24px 32px 28px;
+    border-bottom: 1px solid var(--line-hi);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* orange top-edge accent (when on target) */
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--green);
+    z-index: 2;
+  }
+
+  .hero-sparkline {
+    position: absolute;
+    left: 0; right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 220px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .hero-sparkline-meta {
+    position: absolute;
+    bottom: 14px; left: 22px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.20em; text-transform: uppercase;
+    color: var(--text-dim);
+    z-index: 1;
+  }
+
+  .hero-sparkline-range {
+    position: absolute;
+    bottom: 14px; right: 22px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.20em; text-transform: uppercase;
+    color: var(--text-dim);
+    z-index: 1;
+  }
+
+  .hero-label {
+    font-size: 18px; font-weight: 800;
+    letter-spacing: 0.32em; text-transform: uppercase;
+    color: var(--text-mid);
+    margin-bottom: 8px;
+    position: relative; z-index: 1;
+  }
+
+  .hero-value-wrap {
+    display: flex; align-items: baseline;
+    line-height: 0.9;
+    position: relative; z-index: 1;
+  }
+
+  .hero-value {
+    font-size: 240px;
+    font-weight: 700;
+    line-height: 0.9;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.05em;
+  }
+
+  .hero-unit {
+    font-size: 64px;
+    font-weight: 500;
+    color: var(--text-mid);
+    margin-left: 12px;
+    letter-spacing: 0;
+  }
+
+  .hero-target {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+    margin-top: 18px;
+    display: flex; align-items: center; gap: 14px;
+    position: relative; z-index: 1;
+  }
+
+  .hero-target strong {
+    color: var(--text);
+    font-weight: 800;
+  }
+
+  .hero-target .delta {
+    color: var(--green);
+    font-weight: 800;
+    letter-spacing: 0.05em;
+  }
+
+  .hero-target-sep {
+    width: 1px; height: 14px;
+    background: var(--line-hi);
+  }
+
+  /* ── SECONDARY (chemistry row) ─────────────────────── */
+  .secondary {
+    flex-shrink: 0;
+    height: 144px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--line-hi);
+  }
+
+  .sensor {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 14px 12px;
+    gap: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .sensor + .sensor {
+    border-left: 1px solid var(--line);
+  }
+
+  /* Mini sparkline behind each secondary value */
+  .sensor-spark {
+    position: absolute;
+    left: 0; right: 0;
+    top: 32px;
+    width: 100%;
+    height: calc(100% - 36px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.55;
+  }
+
+  .sensor-label,
+  .sensor-value {
+    position: relative;
+    z-index: 1;
+  }
+
+  .sensor-label {
+    font-size: 14px; font-weight: 800;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--text-mid);
+  }
+
+  .sensor-value {
+    font-size: 96px;
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.04em;
+    display: flex;
+    align-items: baseline;
+  }
+
+  .sensor-value-unit {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text-mid);
+    margin-left: 4px;
+  }
+
+  .sensor.tight .sensor-value { font-size: 80px; }
+
+  /* ── STATUS BAR (full-width, 80px) ─────────────────── */
+  /* Traffic-light convention: green=running, yellow=warning, red=fault */
+  .status-bar {
+    height: 80px; flex-shrink: 0;
+    display: flex; align-items: center;
+    padding: 0 28px;
+    gap: 18px;
+    background: var(--green);
+    color: #FFFFFF;
+  }
+
+  .status-bar.attention { background: var(--yellow); color: #FFFFFF; }
+  .status-bar.fault {
+    background: var(--red); color: #FFFFFF;
+    animation: fault-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes fault-pulse {
+    0%, 100% { background: #C20018; }
+    50%       { background: #8B0010; }
+  }
+
+  .status-dot {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    flex-shrink: 0;
+    animation: pulse-dot 1.6s ease-in-out infinite;
+  }
+  .status-bar.fault .status-dot { background: #FFFFFF; }
+  @keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.35; }
+  }
+
+  .status-headline {
+    font-size: 30px;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .status-divider { width: 2px; height: 32px; background: rgba(255,255,255,0.40); }
+
+  .status-detail {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    flex: 1;
+  }
+  .status-detail strong { font-weight: 800; }
+
+  /* Theme toggle (dev-only) */
+  .theme-toggle {
+    position: absolute;
+    bottom: 96px; right: 14px;
+    width: 28px; height: 28px;
+    border: 1px solid var(--line-hi);
+    background: var(--surface);
+    color: var(--text-mid);
+    font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    text-decoration: none;
+  }
+  .theme-toggle:hover { color: var(--orange); border-color: var(--orange); }
+
+</style>
+</head>
+<body>
+<div class="screen">
+
+  <!-- HEADER -->
+  <div class="header">
+    <svg class="hex-logo" viewBox="0 0 30 30" fill="none">
+      <polygon points="15,1.5 26,7.8 26,22.2 15,28.5 4,22.2 4,7.8" fill="#EB8B23"/>
+      <polygon points="15,5.5 23,10.2 23,19.8 15,24.5 7,19.8 7,10.2" fill="#FFFFFF"/>
+      <polygon points="15,9.5 20,12.4 20,18.2 15,21.0 10,18.2 10,12.4" fill="#EB8B23" opacity="0.75"/>
+      <circle cx="15" cy="15" r="2.4" fill="#FFFFFF"/>
+    </svg>
+    <div class="brand">Ark</div>
+    <div class="header-flex"></div>
+    <div class="header-date">Mon · May 4</div>
+    <div class="header-sep"></div>
+    <div class="header-clock">10:42 AM</div>
+  </div>
+
+  <!-- HERO: POOL ORP -->
+  <div class="hero">
+
+    <!-- 24h sparkline behind the number -->
+    <svg class="hero-sparkline" viewBox="0 0 960 140" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="sparkfill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#EB8B23" stop-opacity="0.30"/>
+          <stop offset="100%" stop-color="#EB8B23" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+
+      <!-- target reference line at 700 mV -->
+      <line x1="0" y1="79" x2="960" y2="79"
+            stroke="rgba(0,0,0,0.20)" stroke-width="1" stroke-dasharray="4 6"/>
+
+      <!-- area fill -->
+      <polygon fill="url(#sparkfill)"
+        points="0,85 42,96 84,103 125,113 167,106 209,92 250,79 292,68 334,55 375,44 417,37 459,27 501,17 542,24 584,31 626,41 668,51 710,58 751,61 793,55 835,48 876,44 918,41 960,37 960,140 0,140"/>
+
+      <!-- trace line -->
+      <polyline fill="none" stroke="#EB8B23" stroke-width="2.5"
+        stroke-opacity="0.85" stroke-linecap="round" stroke-linejoin="round"
+        points="0,85 42,96 84,103 125,113 167,106 209,92 250,79 292,68 334,55 375,44 417,37 459,27 501,17 542,24 584,31 626,41 668,51 710,58 751,61 793,55 835,48 876,44 918,41 960,37"/>
+
+      <!-- "now" point at right edge -->
+      <circle cx="960" cy="37" r="7" fill="#EB8B23"/>
+      <circle cx="960" cy="37" r="3" fill="#FFFFFF"/>
+    </svg>
+
+    <div class="hero-sparkline-meta">24h trace · target 700</div>
+    <div class="hero-sparkline-range">685 — 720 mV</div>
+
+    <div class="hero-label">Pool ORP</div>
+    <div class="hero-value-wrap">
+      <div class="hero-value">712</div>
+      <div class="hero-unit">mV</div>
+    </div>
+    <div class="hero-target">
+      Target <strong>700 mV</strong>
+      <div class="hero-target-sep"></div>
+      <span class="delta">+12 · ON TARGET</span>
+    </div>
+  </div>
+
+  <!-- SECONDARY: pH · Salt · Temp (each with 24h sparkline) -->
+  <div class="secondary">
+
+    <div class="sensor">
+      <svg class="sensor-spark" viewBox="0 0 320 80" preserveAspectRatio="none">
+        <polyline fill="none" stroke="#EB8B23" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"
+          points="0,42 14,40 28,36 42,38 56,42 70,46 84,48 98,49 112,46 126,42 140,40 154,36 168,34 182,36 196,40 210,42 224,40 238,36 252,38 266,40 280,42 294,40 308,38 320,38"/>
+        <circle cx="320" cy="38" r="4" fill="#EB8B23"/>
+      </svg>
+      <div class="sensor-label">pH</div>
+      <div class="sensor-value">7.4</div>
+    </div>
+
+    <div class="sensor tight">
+      <svg class="sensor-spark" viewBox="0 0 320 80" preserveAspectRatio="none">
+        <polyline fill="none" stroke="#EB8B23" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"
+          points="0,18 14,16 28,14 42,18 56,24 70,28 84,32 98,36 112,40 126,44 140,48 154,46 168,42 182,40 196,38 210,40 224,44 238,48 252,52 266,48 280,46 294,44 308,46 320,46"/>
+        <circle cx="320" cy="46" r="4" fill="#EB8B23"/>
+      </svg>
+      <div class="sensor-label">Salt</div>
+      <div class="sensor-value">28.5<span class="sensor-value-unit">mS/cm</span></div>
+    </div>
+
+    <div class="sensor">
+      <svg class="sensor-spark" viewBox="0 0 320 80" preserveAspectRatio="none">
+        <polyline fill="none" stroke="#EB8B23" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"
+          points="0,62 14,64 28,62 42,58 56,52 70,46 84,40 98,36 112,28 126,22 140,16 154,18 168,20 182,24 196,28 210,22 224,18 238,16 252,20 266,24 280,22 294,24 308,26 320,26"/>
+        <circle cx="320" cy="26" r="4" fill="#EB8B23"/>
+      </svg>
+      <div class="sensor-label">Temp</div>
+      <div class="sensor-value">78°<span class="sensor-value-unit">F</span></div>
+    </div>
+
+  </div>
+
+  <!-- STATUS BAR -->
+  <div class="status-bar">
+    <div class="status-dot"></div>
+    <div class="status-headline">Running</div>
+    <div class="status-divider"></div>
+    <div class="status-detail">Ends <strong>2:30 PM</strong> · 3h 48m remaining</div>
+  </div>
+
+  <!-- Dev-only theme toggle -->
+  <a class="theme-toggle" href="home-v2.html" title="Switch to Dark">☾</a>
+
+</div>
+</body>
+</html>
